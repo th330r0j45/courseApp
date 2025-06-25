@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 import { Course } from '../../models/course.model';
 import { CourseService } from '../../services/course.service';
 
@@ -38,7 +39,8 @@ export class CourseFormComponent implements OnInit {
     private fb: FormBuilder,
     private courseService: CourseService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private toastr: ToastrService
   ) {
     this.courseForm = this.createForm();
   }
@@ -87,7 +89,7 @@ export class CourseFormComponent implements OnInit {
       error: (error) => {
         console.error('Error al cargar el curso:', error);
         this.isLoading = false;
-        alert('Error al cargar el curso. Redirigiendo...');
+        this.toastr.error('Error al cargar el curso. Redirigiendo...', 'Error');
         this.router.navigate(['/admin/courses']);
       }
     });
@@ -96,6 +98,7 @@ export class CourseFormComponent implements OnInit {
   onSubmit(): void {
     if (this.courseForm.invalid) {
       this.markFormGroupTouched(this.courseForm);
+      this.toastr.warning('Por favor, completa todos los campos requeridos correctamente', 'Formulario incompleto');
       return;
     }
 
@@ -112,12 +115,12 @@ export class CourseFormComponent implements OnInit {
 
       this.courseService.updateCourse(updateData).subscribe({
         next: () => {
-          alert('Curso actualizado exitosamente');
+          this.toastr.success('Curso actualizado exitosamente', '¡Éxito!');
           this.router.navigate(['/admin/courses']);
         },
         error: (error) => {
           console.error('Error al actualizar curso:', error);
-          alert('Error al actualizar el curso. Inténtalo de nuevo.');
+          this.toastr.error('Error al actualizar el curso. Inténtalo de nuevo.', 'Error');
           this.isSubmitting = false;
         }
       });
@@ -130,12 +133,12 @@ export class CourseFormComponent implements OnInit {
 
       this.courseService.createCourse(createData).subscribe({
         next: () => {
-          alert('Curso creado exitosamente');
+          this.toastr.success('Curso creado exitosamente', '¡Éxito!');
           this.router.navigate(['/admin/courses']);
         },
         error: (error) => {
           console.error('Error al crear curso:', error);
-          alert('Error al crear el curso. Inténtalo de nuevo.');
+          this.toastr.error('Error al crear el curso. Inténtalo de nuevo.', 'Error');
           this.isSubmitting = false;
         }
       });

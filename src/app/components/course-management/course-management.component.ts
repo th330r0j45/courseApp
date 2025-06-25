@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Course } from '../../models/course.model';
 import { CourseService } from '../../services/course.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-course-management',
@@ -25,7 +26,9 @@ export class CourseManagementComponent implements OnInit {
   itemsPerPage: number = 10;
   totalItems: number = 0;
 
-  constructor(private courseService: CourseService) {}
+  constructor(private courseService: CourseService,
+    private toastr: ToastrService
+  ) { }
 
   ngOnInit(): void {
     this.loadCourses();
@@ -84,11 +87,11 @@ export class CourseManagementComponent implements OnInit {
       this.courseService.deleteCourse(course.id).subscribe({
         next: () => {
           this.loadCourses();
-          alert('Curso eliminado exitosamente');
+          this.toastr.success('Curso eliminado exitosamente', '¡Éxito!');
         },
         error: (error) => {
           console.error('Error al eliminar curso:', error);
-          alert('Error al eliminar el curso. Inténtalo de nuevo.');
+          this.toastr.error('Error al eliminar el curso. Inténtalo de nuevo.', 'Error');
         }
       });
     }
@@ -115,7 +118,7 @@ export class CourseManagementComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al actualizar estado del curso:', error);
-        alert('Error al actualizar el estado del curso.');
+        this.toastr.error('Error al actualizar el estado del curso.', 'Error');
       }
     });
   }

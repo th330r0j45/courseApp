@@ -4,6 +4,7 @@ import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { Course } from '../../models/course.model';
 import { CourseService } from '../../services/course.service';
 import { CourseCardComponent } from '../course-card/course-card.component';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-course-detail',
@@ -20,7 +21,8 @@ export class CourseDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private courseService: CourseService
+    private courseService: CourseService,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
@@ -114,7 +116,7 @@ export class CourseDetailComponent implements OnInit {
       // Fallback: copiar URL al clipboard
       navigator.clipboard.writeText(window.location.href).then(() => {
         console.log('✅ URL copiada al portapapeles');
-        alert('¡URL del curso copiada al portapapeles!');
+        this.toastr.success('¡URL del curso copiada al portapapeles!', '¡Éxito!');
       }).catch(() => {
         // Fallback final: mostrar la URL
         prompt('Copia esta URL para compartir:', window.location.href);

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Course } from '../../models/course.model';
 import { CourseService } from '../../services/course.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -19,7 +20,10 @@ export class AdminDashboardComponent implements OnInit {
   recentCourses: Course[] = [];
   isLoading: boolean = false;
 
-  constructor(private courseService: CourseService) {}
+  constructor(
+    private courseService: CourseService,
+    private toastr: ToastrService
+  ) {}
 
   ngOnInit(): void {
     this.loadDashboardData();
@@ -81,11 +85,11 @@ export class AdminDashboardComponent implements OnInit {
       this.courseService.deleteCourse(courseId).subscribe({
         next: () => {
           this.loadDashboardData(); // Recargar datos después de eliminar
-          alert('Curso eliminado exitosamente');
+          this.toastr.success('Curso eliminado exitosamente', '¡Éxito!');
         },
         error: (error) => {
           console.error('Error al eliminar curso:', error);
-          alert('Error al eliminar el curso. Por favor, inténtalo de nuevo.');
+          this.toastr.error('Error al eliminar el curso. Por favor, inténtalo de nuevo.', 'Error');
         }
       });
     }
