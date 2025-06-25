@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import Swal from 'sweetalert2';
 import { Course } from '../../models/course.model';
 import { CourseService } from '../../services/course.service';
 import { ToastrService } from 'ngx-toastr';
@@ -81,17 +82,28 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   deleteCourse(courseId: number): void {
-    if (confirm('¿Estás seguro de que quieres eliminar este curso? Esta acción no se puede deshacer.')) {
-      this.courseService.deleteCourse(courseId).subscribe({
-        next: () => {
-          this.loadDashboardData(); // Recargar datos después de eliminar
-          this.toastr.success('Curso eliminado exitosamente', '¡Éxito!');
-        },
-        error: (error) => {
-          console.error('Error al eliminar curso:', error);
-          this.toastr.error('Error al eliminar el curso. Por favor, inténtalo de nuevo.', 'Error');
-        }
-      });
-    }
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: '¿Quieres eliminar este curso? Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.courseService.deleteCourse(courseId).subscribe({
+          next: () => {
+            this.loadDashboardData();
+            this.toastr.success('Curso eliminado exitosamente', '¡Éxito!');
+          },
+          error: (error) => {
+            console.error('Error al eliminar curso:', error);
+            this.toastr.error('Error al eliminar el curso. Por favor, inténtalo de nuevo.', 'Error');
+          }
+        });
+      }
+    });
   }
 }

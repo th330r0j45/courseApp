@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import Swal from 'sweetalert2';
 import { Course } from '../../models/course.model';
 import { CourseService } from '../../services/course.service';
 
@@ -147,12 +148,23 @@ export class CourseFormComponent implements OnInit {
 
   onCancel(): void {
     if (this.courseForm.dirty) {
-      const confirmLeave = confirm('¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.');
-      if (!confirmLeave) {
-        return;
-      }
+      Swal.fire({
+        title: '¿Estás seguro?',
+        text: 'Los cambios no guardados se perderán.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, salir',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.router.navigate(['/admin/courses']);
+        }
+      });
+    } else {
+      this.router.navigate(['/admin/courses']);
     }
-    this.router.navigate(['/admin/courses']);
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {

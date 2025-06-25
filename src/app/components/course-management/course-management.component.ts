@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import Swal from 'sweetalert2';
 import { Course } from '../../models/course.model';
 import { CourseService } from '../../services/course.service';
 import { ToastrService } from 'ngx-toastr';
@@ -20,7 +21,7 @@ export class CourseManagementComponent implements OnInit {
   selectedCategory: string = 'Todos';
   categories: string[] = ['Todos', 'Programación', 'Diseño', 'Marketing', 'Negocios', 'Idiomas'];
   isLoading: boolean = false;
-  
+
   // Pagination
   currentPage: number = 1;
   itemsPerPage: number = 10;
@@ -81,24 +82,34 @@ export class CourseManagementComponent implements OnInit {
 
   deleteCourse(course: Course): void {
     if (!course.id) return;
-    
-    const confirmMessage = `¿Estás seguro de que deseas eliminar el curso "${course.title}"?`;
-    if (confirm(confirmMessage)) {
-      this.courseService.deleteCourse(course.id).subscribe({
-        next: () => {
-          this.loadCourses();
-          this.toastr.success('Curso eliminado exitosamente', '¡Éxito!');
-        },
-        error: (error) => {
-          console.error('Error al eliminar curso:', error);
-          this.toastr.error('Error al eliminar el curso. Inténtalo de nuevo.', 'Error');
-        }
-      });
-    }
+
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: `¿Deseas eliminar el curso "${course.title}"? Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.courseService.deleteCourse(course.id!).subscribe({
+          next: () => {
+            this.loadCourses();
+            this.toastr.success('Curso eliminado exitosamente', '¡Éxito!');
+          },
+          error: (error) => {
+            console.error('Error al eliminar curso:', error);
+            this.toastr.error('Error al eliminar el curso. Por favor, inténtalo de nuevo.', 'Error');
+          }
+        });
+      }
+    });
   }
   toggleCourseStatus(course: Course): void {
     if (!course.id) return;
-    
+
     const updatedCourse = {
       id: course.id,
       title: course.title,
