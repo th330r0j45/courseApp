@@ -84,31 +84,53 @@ if ! command -v certbot &> /dev/null; then
     sudo python3 -m pip install certbot
 fi
 
-# Parar la aplicación temporalmente para liberar puerto 80
-echo "⏸️  Parando aplicación temporalmente..."
-docker-compose -f docker/docker-compose.yaml down
-
-# Obtener certificado SSL usando standalone
-echo "🔐 Obteniendo certificado SSL de Let's Encrypt..."
-sudo certbot certonly \
-    --standalone \
-    --non-interactive \
-    --agree-tos \
-    --email $EMAIL \
-    -d $DOMAIN
-
-if [ $? -ne 0 ]; then
-    echo "❌ Error obteniendo certificado SSL"
-    echo "Verifica que:"
-    echo "   - El dominio apunte a esta instancia"
-    echo "   - Los puertos 80 y 443 estén abiertos en Security Groups"
-    echo "   - No haya otros servicios usando estos puertos"
-    echo ""
-    echo "🔄 Reiniciando aplicación sin SSL..."
-    docker-compose -f docker/docker-compose.yaml up -d
-    exit 1
+# Verificar si ya existe un certificado válido
+CERT_PATH="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
+if [ -f "$CERT_PATH" ]; then
+    echo "🔍 Verificando certificado existente..."
+    
+    # Verificar si el certificado es válido y no está expirado
+    if sudo openssl x509 -in "$CERT_PATH" -checkend 2592000 -noout > /dev/null 2>&1; then
+        echo "✅ Certificado SSL válido encontrado para $DOMAIN"
+        echo "   No es necesario obtener un nuevo certificado"
+        SKIP_CERT_GENERATION=true
+    else
+        echo "⚠️  Certificado existente expira pronto o es inválido"
+        echo "   Se obtendrá un nuevo certificado"
+        SKIP_CERT_GENERATION=false
+    fi
+else
+    echo "🔍 No se encontró certificado existente"
+    SKIP_CERT_GENERATION=false
 fi
-    exit 1
+
+if [ "$SKIP_CERT_GENERATION" = false ]; then
+    # Parar la aplicación temporalmente para liberar puerto 80
+    echo "⏸️  Parando aplicación temporalmente..."
+    docker-compose -f docker/docker-compose.yaml down
+
+    # Obtener certificado SSL usando standalone
+    echo "🔐 Obteniendo certificado SSL de Let's Encrypt..."
+    sudo certbot certonly \
+        --standalone \
+        --non-interactive \
+        --agree-tos \
+        --email $EMAIL \
+        -d $DOMAIN
+
+    if [ $? -ne 0 ]; then
+        echo "❌ Error obteniendo certificado SSL"
+        echo "Verifica que:"
+        echo "   - El dominio apunte a esta instancia"
+        echo "   - Los puertos 80 y 443 estén abiertos en Security Groups"
+        echo "   - No haya otros servicios usando estos puertos"
+        echo ""
+        echo "🔄 Reiniciando aplicación sin SSL..."
+        docker-compose -f docker/docker-compose.yaml up -d
+        exit 1
+    fi
+else
+    echo "⏭️  Saltando generación de certificado, usando el existente"
 fi
 
 # Crear configuración de Nginx con SSL
@@ -275,6 +297,17 @@ docker-compose -f docker/docker-compose-ssl.yaml up --build -d
 
 # Configurar renovación automática
 echo "⏰ Configurando renovación automática de certificados..."
+
+# Verificar si crontab está disponible, si no instalarlo
+if ! command -v crontab &> /dev/null; then
+    echo "📦 Instalando cron service..."
+    sudo yum update -y
+    sudo yum install -y cronie
+    sudo systemctl enable crond
+    sudo systemctl start crond
+fi
+
+# Configurar renovación automática
 (crontab -l 2>/dev/null; echo "0 12 */89 * * /usr/bin/certbot renew --quiet --deploy-hook 'docker-compose -f $PWD/docker/docker-compose-ssl.yaml restart courses-frontend'") | crontab -
 
 # Verificar que todo funcione
@@ -292,6 +325,19 @@ if curl -s -k https://$DOMAIN > /dev/null; then
     echo "✅ HTTPS dominio: Funcionando"
 else
     echo "❌ HTTPS dominio: Error (puede tardar unos minutos en propagarse)"
+fi
+
+# Mostrar información del certificado
+echo ""
+echo "📜 Información del certificado SSL:"
+if [ -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
+    CERT_EXPIRY=$(sudo openssl x509 -in "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" -enddate -noout | cut -d= -f2)
+    CERT_ISSUER=$(sudo openssl x509 -in "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" -issuer -noout | cut -d= -f2-)
+    echo "   📅 Expira: $CERT_EXPIRY"
+    echo "   🏢 Emisor: $CERT_ISSUER"
+    echo "   📍 Ubicación: /etc/letsencrypt/live/$DOMAIN/"
+else
+    echo "   ⚠️  No se pudo acceder al certificado"
 fi
 
 echo ""
