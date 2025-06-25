@@ -22,40 +22,10 @@ else
     PUBLIC_IP="localhost"
 fi
 
-# Configurar Angular para usar rutas relativas (modo producción)
-echo "🎯 Configurando Angular para producción..."
-
-# Verificar si existe el archivo de configuración de ambiente
-if [ -f "src/environments/environment.prod.ts" ]; then
-    # Backup del archivo original
-    cp src/environments/environment.prod.ts src/environments/environment.prod.ts.backup
-    
-    # Crear nueva configuración de producción
-    cat > src/environments/environment.prod.ts << EOF
-export const environment = {
-  production: true,
-  apiUrl: '/api', // Usar proxy de Nginx
-  endpoints: {
-    courses: '/courses',
-    health: '/health'
-  }
-};
-EOF
-    echo "✅ Configuración de Angular actualizada para producción"
-else
-    echo "⚠️  Archivo environment.prod.ts no encontrado, creando..."
-    mkdir -p src/environments
-    cat > src/environments/environment.prod.ts << EOF
-export const environment = {
-  production: true,
-  apiUrl: '/api',
-  endpoints: {
-    courses: '/courses',
-    health: '/health'
-  }
-};
-EOF
-fi
+# Configuración automática detectada - Angular configurado para usar proxy
+echo "🎯 Angular configurado para detectar entorno automáticamente"
+echo "   • Desarrollo: usa /api/courses con proxy local"
+echo "   • Producción: usa /api/courses con proxy Nginx"
 
 # Verificar que Docker esté corriendo
 if ! systemctl is-active --quiet docker 2>/dev/null && ! docker info > /dev/null 2>&1; then
