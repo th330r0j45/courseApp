@@ -15,15 +15,23 @@ if ! docker ps > /dev/null 2>&1; then
     exit 1
 fi
 
-# Verificar que estamos en EC2
-if ! curl -s -m 2 http://169.254.169.254/latest/meta-data/instance-id > /dev/null 2>&1; then
+# Verificar que estamos en EC2 y obtener metadata usando IMDSv2
+echo "🔍 Verificando instancia EC2..."
+
+# Obtener token para IMDSv2
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" -s)
+
+if [ -z "$TOKEN" ]; then
     echo "❌ Este script está diseñado para ejecutarse en EC2"
     exit 1
 fi
 
-# Obtener IP pública
-PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
-echo "🌐 IP Pública de EC2: $PUBLIC_IP"
+# Obtener instance ID y public IP usando el token
+INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id)
+PUBLIC_IP=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/public-ipv4)
+
+echo "� Instance ID: $INSTANCE_ID"
+echo "🌐 Public IP: $PUBLIC_IP"
 
 # Verificar que la aplicación esté corriendo
 if ! curl -s -f http://localhost > /dev/null; then
@@ -100,6 +108,8 @@ if [ $? -ne 0 ]; then
     docker-compose -f docker/docker-compose.yaml up -d
     exit 1
 fi
+    exit 1
+fi
 
 # Crear configuración de Nginx con SSL
 echo "🔧 Configurando Nginx con SSL..."
@@ -107,74 +117,98 @@ sudo mkdir -p /etc/nginx/ssl
 
 # Crear configuración SSL para Nginx
 cat > docker/nginx-ssl.conf << EOF
-server {
-    listen 80;
-    server_name $DOMAIN;
-    return 301 https://\$server_name\$request_uri;
+events {
+    worker_connections 1024;
 }
 
-server {
-    listen 443 ssl http2;
-    server_name $DOMAIN;
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
     
-    # SSL Configuration
-    ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
-    
-    # SSL Security
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384;
-    ssl_prefer_server_ciphers off;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
-    
-    # Security Headers
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    add_header X-Frame-Options DENY always;
-    add_header X-Content-Type-Options nosniff always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-
-    root /usr/share/nginx/html;
-    index index.html;
-
-    # Servir archivos estáticos de Angular
-    location / {
-        try_files \$uri \$uri/ /index.html;
-        add_header Cache-Control "no-cache, no-store, must-revalidate";
-        add_header Pragma "no-cache";
-        add_header Expires "0";
+    # Redirección HTTP a HTTPS
+    server {
+        listen 80;
+        server_name $DOMAIN;
+        return 301 https://\$server_name\$request_uri;
     }
 
-    # Proxy para API del backend
-    location /api/ {
-        proxy_pass http://courses-backend:3001/api/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_cache_bypass \$http_upgrade;
-        proxy_connect_timeout 300;
-        proxy_send_timeout 300;
-        proxy_read_timeout 300;
-    }
+    # Configuración HTTPS
+    server {
+        listen 443 ssl http2;
+        server_name $DOMAIN;
+        
+        # SSL Configuration
+        ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
+        
+        # SSL Security
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384;
+        ssl_prefer_server_ciphers off;
+        ssl_session_cache shared:SSL:10m;
+        ssl_session_timeout 10m;
+        
+        # Security Headers
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Frame-Options DENY always;
+        add_header X-Content-Type-Options nosniff always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
-    # Archivos estáticos con caché
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
+        root /usr/share/nginx/html;
+        index index.html;
+
+        # Servir archivos estáticos de Angular
+        location / {
+            try_files \$uri \$uri/ /index.html;
+            add_header Cache-Control "no-cache, no-store, must-revalidate";
+            add_header Pragma "no-cache";
+            add_header Expires "0";
+        }
+
+        # Proxy para las llamadas a la API del backend
+        location /api/ {
+            proxy_pass http://courses-backend:3001/api/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade \$http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+            proxy_cache_bypass \$http_upgrade;
+            proxy_connect_timeout 300;
+            proxy_send_timeout 300;
+            proxy_read_timeout 300;
+            
+            # Headers CORS
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With' always;
+        }
+
+        # Health check del backend a través del proxy
+        location /health {
+            proxy_pass http://courses-backend:3001/health;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+        }
+
+        # Configuración para archivos estáticos
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)\$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
     }
 }
 EOF
 
 # Crear docker-compose con SSL
 cat > docker/docker-compose-ssl.yaml << EOF
-version: '3.8'
-
 services:
+  # Backend Node.js
   courses-backend:
     container_name: courses-backend
     build:
@@ -192,11 +226,12 @@ services:
       start_period: 40s
     restart: unless-stopped
 
+  # Frontend Angular con SSL
   courses-frontend:
     container_name: courses-frontend
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile-ssl
     ports:
       - "80:80"
       - "443:443"
@@ -212,8 +247,27 @@ volumes:
 EOF
 
 # Actualizar Dockerfile para usar configuración SSL
+echo "🔧 Preparando configuración SSL..."
 cp docker/nginx.conf docker/nginx-original.conf
-cp docker/nginx-ssl.conf docker/nginx.conf
+
+# Crear Dockerfile específico para SSL
+cat > docker/Dockerfile-ssl << EOF
+# Building a Node.js application with Docker
+FROM node:22-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --verbose
+COPY . .
+RUN npm run build
+
+#Nginx
+FROM nginx:1.27-alpine
+COPY --from=builder /app/dist/courses/browser /usr/share/nginx/html
+COPY docker/nginx-ssl.conf /etc/nginx/nginx.conf
+EXPOSE 80 443
+#Init Nginx principal service not deamon
+CMD ["nginx", "-g", "daemon off;"]
+EOF
 
 # Desplegar con SSL
 echo "🚀 Desplegando aplicación con SSL..."
@@ -252,9 +306,14 @@ echo "   - Renovación automática configurada"
 echo "   - Configuración de seguridad aplicada"
 echo ""
 echo "🔧 Archivos creados:"
-echo "   - docker/nginx-ssl.conf (configuración SSL)"
+echo "   - docker/nginx-ssl.conf (configuración SSL completa)"
+echo "   - docker/Dockerfile-ssl (Dockerfile para SSL)"
 echo "   - docker/docker-compose-ssl.yaml (compose con SSL)"
 echo "   - docker/nginx-original.conf (backup configuración original)"
 echo ""
 echo "⚠️  Para futuras actualizaciones usa:"
 echo "   docker-compose -f docker/docker-compose-ssl.yaml up --build -d"
+echo ""
+echo "🔄 Para volver a HTTP sin SSL:"
+echo "   docker-compose -f docker/docker-compose-ssl.yaml down"
+echo "   docker-compose -f docker/docker-compose.yaml up -d"
