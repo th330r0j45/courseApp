@@ -221,7 +221,7 @@ docker-compose -f docker/docker-compose-ssl.yaml up --build -d
 
 # Configurar renovación automática
 echo "⏰ Configurando renovación automática de certificados..."
-(crontab -l 2>/dev/null; echo "0 12 * * * /usr/bin/certbot renew --quiet --deploy-hook 'docker-compose -f $PWD/docker/docker-compose-ssl.yaml restart courses-frontend'") | crontab -
+(crontab -l 2>/dev/null; echo "0 12 */89 * * /usr/bin/certbot renew --quiet --deploy-hook 'docker-compose -f $PWD/docker/docker-compose-ssl.yaml restart courses-frontend'") | crontab -
 
 # Verificar que todo funcione
 sleep 10

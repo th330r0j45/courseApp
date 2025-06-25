@@ -18,29 +18,66 @@ git pull origin to_deploy
 
 # Detectar si hay configuración SSL
 SSL_CONFIG=""
-if [ -f "docker/nginx-ssl.conf" ] && [ -d "/etc/letsencrypt" ]; then
+COMPOSE_FILE="docker/docker-compose.yaml"
+
+if [ -f "docker/nginx-ssl.conf" ] && [ -f "docker/docker-compose-ssl.yaml" ] && [ -d "/etc/letsencrypt" ]; then
     echo "🔐 SSL detectado - usando configuración segura"
     SSL_CONFIG="-ssl"
+    COMPOSE_FILE="docker/docker-compose-ssl.yaml"
+    
+    # Verificar que el certificado SSL esté válido
+    if [ -d "/etc/letsencrypt/live" ]; then
+        CERT_COUNT=$(sudo ls /etc/letsencrypt/live/ 2>/dev/null | wc -l)
+        if [ "$CERT_COUNT" -gt 0 ]; then
+            echo "✅ Certificado SSL válido encontrado"
+        else
+            echo "⚠️ Directorio SSL existe pero no hay certificados válidos"
+        fi
+    fi
+else
+    echo "🌐 SSL no detectado - usando configuración estándar"
 fi
 
 # Parar contenedores (preservando volúmenes y certificados)
-echo "⏹️ Parando contenedores (preservando SSL)..."
-docker-compose -f docker/docker-compose${SSL_CONFIG}.yaml stop 2>/dev/null || \
-docker-compose -f docker/docker-compose.yaml stop
+echo "⏹️ Parando contenedores (preservando SSL y datos)..."
+docker-compose -f "$COMPOSE_FILE" stop
 
 # Reconstruir solo las imágenes (sin eliminar volúmenes)
 echo "🔨 Reconstruyendo imágenes..."
-docker-compose -f docker/docker-compose${SSL_CONFIG}.yaml build 2>/dev/null || \
-docker-compose -f docker/docker-compose.yaml build
+docker-compose -f "$COMPOSE_FILE" build --no-cache
 
 # Iniciar contenedores
 echo "🚀 Iniciando aplicación..."
-docker-compose -f docker/docker-compose${SSL_CONFIG}.yaml up -d 2>/dev/null || \
-docker-compose -f docker/docker-compose.yaml up -d
+docker-compose -f "$COMPOSE_FILE" up -d
 
+# Verificar que los contenedores estén corriendo
+echo "🔍 Verificando estado de los contenedores..."
+sleep 5
+
+if docker-compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
+    echo "✅ Contenedores iniciados correctamente"
+else
+    echo "❌ Error: Algunos contenedores no iniciaron"
+    echo "📋 Estado actual:"
+    docker-compose -f "$COMPOSE_FILE" ps
+fi
+
+echo ""
 echo "✅ ¡Deploy completado!"
+
 if [ -n "$SSL_CONFIG" ]; then
     echo "🔐 Aplicación desplegada con SSL"
+    echo "🌐 Disponible en HTTPS (puerto 443)"
+    echo "🔄 HTTP redirige automáticamente a HTTPS"
+    echo ""
+    echo "📋 Archivos SSL preservados:"
+    echo "   - Certificados Let's Encrypt: ✅"
+    echo "   - Configuración Nginx SSL: ✅"
+    echo "   - Volúmenes de datos: ✅"
 else
-    echo "🌐 Aplicación desplegada"
+    echo "🌐 Aplicación desplegada sin SSL"
+    echo "🌐 Disponible en HTTP (puerto 80)"
 fi
+
+echo ""
+echo "💡 Tip: Si necesitas SSL, ejecuta ./setup-ssl.sh"
