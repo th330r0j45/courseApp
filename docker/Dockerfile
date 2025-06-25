@@ -8,7 +8,8 @@ RUN npm run build
 
 #Nginx
 FROM nginx:1.27-alpine
-COPY --from=builder /app/dist/shop /usr/share/nginx/html
+COPY --from=builder /app/dist/courses /usr/share/nginx/html/frontend/courses
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 #Init Nginx principal service not deamon
 CMD ["nginx", "-g", "daemon off;"]
