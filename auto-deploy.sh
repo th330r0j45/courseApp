@@ -15,7 +15,6 @@ fi
 # Actualizar código
 echo "⬇️ Descargando cambios..."
 # Descartar cambios locales no deseados y actualizar
-echo "🧹 Descartando cambios locales (no deberían existir en servidor)..."
 git reset --hard HEAD
 git clean -fd
 git pull origin to_deploy
