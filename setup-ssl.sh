@@ -4,6 +4,17 @@
 
 echo "🔐 Configurando SSL/HTTPS para la aplicación..."
 
+# Verificar permisos de Docker
+if ! docker ps > /dev/null 2>&1; then
+    echo "❌ Error: No tienes permisos para Docker"
+    echo "💡 Solucionando permisos de Docker..."
+    sudo usermod -aG docker $USER
+    sudo chmod 666 /var/run/docker.sock
+    echo "✅ Permisos configurados. Cierra sesión y vuelve a entrar, o ejecuta: newgrp docker"
+    echo "   Luego ejecuta este script nuevamente"
+    exit 1
+fi
+
 # Verificar que estamos en EC2
 if ! curl -s -m 2 http://169.254.169.254/latest/meta-data/instance-id > /dev/null 2>&1; then
     echo "❌ Este script está diseñado para ejecutarse en EC2"
@@ -18,6 +29,13 @@ echo "🌐 IP Pública de EC2: $PUBLIC_IP"
 if ! curl -s -f http://localhost > /dev/null; then
     echo "❌ La aplicación no está corriendo. Ejecuta ./deploy.sh primero"
     exit 1
+fi
+
+# Verificar que el puerto 80 esté disponible para Certbot
+echo "🔍 Verificando disponibilidad del puerto 80..."
+if sudo netstat -tlnp | grep :80 > /dev/null; then
+    echo "⚠️  Puerto 80 está ocupado. Esto es normal si la aplicación está corriendo."
+    echo "   Se detendrá temporalmente para obtener el certificado SSL"
 fi
 
 # Solicitar información del dominio

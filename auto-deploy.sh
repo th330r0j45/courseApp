@@ -1,44 +1,30 @@
-#!/bin/bash
-
-# Script de auto-deploy desde Git
-
-echo "🔄 Actualizando aplicación desde Git..."
-
-# Verificar que estamos en un repositorio Git
-if [ ! -d ".git" ]; then
-    echo "❌ Este directorio no es un repositorio Git"
-    exit 1
-fi
-
-# Obtener rama actual
+#!/bi# Cambiar a rama to_deploy
 CURRENT_BRANCH=$(git branch --show-current)
-echo "📋 Rama actual: $CURRENT_BRANCH"
-
-# Guardar cambios locales si los hay
-if ! git diff-index --quiet HEAD --; then
-    echo "💾 Guardando cambios locales..."
-    git stash push -m "Auto-stash before deploy $(date)"
-fi
-
-# Actualizar desde Git
-echo "⬇️  Descargando cambios..."
-git pull origin $CURRENT_BRANCH
-
-if [ $? -eq 0 ]; then
-    echo "✅ Código actualizado exitosamente"
-    
-    # Hacer ejecutables los scripts
-    chmod +x *.sh
-    
-    # Desplegar
-    echo "🚀 Desplegando aplicación..."
-    ./deploy.sh
-    
-    echo ""
-    echo "🎉 ¡Deploy completado!"
-    echo "🌐 Tu aplicación está actualizada y corriendo"
-    
+if [ "$CURRENT_BRANCH" = "to_deploy" ]; then
+    echo "✅ Ya estás en rama to_deploy"
 else
-    echo "❌ Error al actualizar desde Git"
-    exit 1
-fi
+    echo "📂 Cambiando a rama to_deploy..."
+    git checkout to_deploy
+fiash
+
+# 🚀 Deploy rápido y fácil
+echo "� Desplegando nuevos cambios..."
+
+# Cambiar a rama to_deploy
+echo "� Cambiando a rama to_deploy..."
+git checkout to_deploy
+
+# Actualizar código
+echo "⬇️ Descargando cambios..."
+git pull origin to_deploy
+
+# Parar contenedores
+echo "⏹️ Parando contenedores..."
+docker-compose -f docker/docker-compose.yaml down
+
+# Construir y ejecutar
+echo "� Construyendo y desplegando..."
+docker-compose -f docker/docker-compose.yaml up --build -d
+
+echo "✅ ¡Deploy completado!"
+echo "🌐 Aplicación desplegada y corriendo"
