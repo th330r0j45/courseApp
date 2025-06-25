@@ -1,6 +1,56 @@
-# Courses
+# Aplicación de Gestión de Cursos - Angular
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.14.
+Una aplicación moderna de Angular para la gestión y visualización de cursos educativos.
+
+## Características
+
+### 🎯 Página Pública de Cursos
+- **Vista de catálogo**: Tarjetas atractivas que muestran la información esencial de cada curso
+- **Búsqueda avanzada**: Filtrado por título, instructor, descripción y categoría
+- **Filtros por categoría**: Organización eficiente del contenido
+- **Diseño responsivo**: Optimizado para dispositivos móviles y desktop
+- **Información detallada**: Precio, duración, nivel, calificación y número de estudiantes
+
+### ⚙️ Panel de Administración
+- **Dashboard intuitivo**: Estadísticas generales y métricas clave
+- **CRUD completo**: Crear, leer, actualizar y eliminar cursos
+- **Gestión de cursos**: Lista completa con funciones de búsqueda y filtrado
+- **Formularios validados**: Validación robusta de datos de entrada
+- **Estados de curso**: Activar/desactivar cursos fácilmente
+
+## 🛠️ Tecnologías Utilizadas
+
+- **Angular 19**: Framework principal
+- **TypeScript**: Lenguaje de programación
+- **RxJS**: Manejo de programación reactiva
+- **Angular Reactive Forms**: Formularios reactivos con validación
+- **CSS3**: Estilos modernos con Flexbox y Grid
+- **Angular Router**: Navegación entre componentes
+
+## 🚀 Instalación y Uso
+
+### Instalación
+```bash
+# Instalar dependencias
+npm install
+
+# Ejecutar en modo desarrollo
+npm start
+# o
+ng serve
+
+# La aplicación estará disponible en http://localhost:4200
+```
+
+### Rutas disponibles
+- `/courses` - Página pública de cursos
+- `/admin/dashboard` - Panel de administración
+- `/admin/courses` - Gestión de cursos
+- `/admin/courses/new` - Crear nuevo curso
+
+## 📊 Configuración del Backend
+
+Actualiza la URL del backend en `src/app/services/course.service.ts`:
 
 ## Development server
 

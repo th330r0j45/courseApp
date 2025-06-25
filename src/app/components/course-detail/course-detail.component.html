@@ -1,0 +1,317 @@
+<!-- Loading State -->
+<div *ngIf="isLoading" class="container py-5">
+  <div class="text-center">
+    <div class="spinner-border spinner-border-custom text-primary mb-3" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <h4 class="text-muted">Cargando detalles del curso...</h4>
+  </div>
+</div>
+
+<!-- Course Detail Content -->
+<div *ngIf="!isLoading && course" class="container-fluid">
+  <!-- Course Header -->
+  <section class="bg-primary text-white py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <!-- Breadcrumb -->
+          <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb breadcrumb-dark mb-0">
+              <li class="breadcrumb-item">
+                <a routerLink="/courses" class="text-white-50">
+                  <i class="bi bi-house me-1"></i>Cursos
+                </a>
+              </li>
+              <li class="breadcrumb-item active text-white" aria-current="page">
+                {{ course.title }}
+              </li>
+            </ol>
+          </nav>
+
+          <div class="row align-items-center">
+            <div class="col-lg-8">
+              <!-- Course Category -->
+              <div class="mb-2">
+                <span class="text-warning-emphasis badge rounded-pill ps-2 text-lg badge bg-opacity-20 text-white px-3 py-2">
+                  <i class="bi bi-tag me-1"></i>{{ course.category }}
+                </span>
+                <!-- <span class="badge rounded-pill text-bg-primary">Primary</span> -->
+
+              </div>
+
+              <!-- Course Title -->
+              <h1 class="display-5 fw-bold mb-3">{{ course.title }}</h1>
+
+              <!-- Course Description -->
+              <p class="lead mb-4">{{ course.description }}</p>
+
+              <!-- Course Meta Info -->
+              <div class="d-flex flex-wrap gap-4 mb-4">
+                <div class="d-flex align-items-center text-white-75">
+                  <i class="bi bi-person-circle me-2 fs-5"></i>
+                  <div>
+                    <small class="d-block opacity-75">Instructor</small>
+                    <span class="fw-semibold">{{ course.instructor }}</span>
+                  </div>
+                </div>
+
+                <div class="d-flex align-items-center text-white-75">
+                  <i class="bi bi-clock me-2 fs-5"></i>
+                  <div>
+                    <small class="d-block opacity-75">Duración</small>
+                    <span class="fw-semibold">{{ course.duration }} horas</span>
+                  </div>
+                </div>
+
+                <div class="d-flex align-items-center text-white-75">
+                  <i class="bi bi-signal me-2 fs-5"></i>
+                  <div>
+                    <small class="d-block opacity-75">Nivel</small>
+                    <span class="fw-semibold">{{ course.level }}</span>
+                  </div>
+                </div>
+
+                <div class="d-flex align-items-center text-white-75" *ngIf="course.rating">
+                  <i class="bi bi-star-fill me-2 fs-5 text-warning"></i>
+                  <div>
+                    <small class="d-block opacity-75">Calificación</small>
+                    <span class="fw-semibold">{{ course.rating }}/5</span>
+                  </div>
+                </div>
+
+                <div class="d-flex align-items-center text-white-75" *ngIf="course.studentsCount">
+                  <i class="bi bi-people me-2 fs-5"></i>
+                  <div>
+                    <small class="d-block opacity-75">Estudiantes</small>
+                    <span class="fw-semibold">{{ course.studentsCount }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-4">
+              <!-- Course Image -->
+              <div class="text-center">
+                <img [src]="course.imageUrl || '/assets/images/default-course.svg'" [alt]="course.title"
+                  class="img-fluid rounded-3 shadow-lg" style="max-height: 300px; width: 100%; object-fit: cover;">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Course Content -->
+  <section class="py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8">
+          <!-- Course Details -->
+          <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+              <h3 class="card-title fw-bold mb-4">
+                <i class="bi bi-info-circle text-primary me-2"></i>
+                Acerca de este curso
+              </h3>
+              <div class="course-description">
+                <p class="text-muted mb-4">{{ course.description }}</p>
+
+                <!-- What you'll learn -->
+                <h5 class="fw-bold mb-3">
+                  <i class="bi bi-check-circle text-success me-2"></i>
+                  Lo que aprenderás
+                </h5>
+                <div class="row g-3 mb-4">
+                  <div class="col-md-6">
+                    <div class="d-flex align-items-start">
+                      <i class="bi bi-check text-success me-2 mt-1"></i>
+                      <span class="text-muted">Conceptos fundamentales y avanzados</span>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="d-flex align-items-start">
+                      <i class="bi bi-check text-success me-2 mt-1"></i>
+                      <span class="text-muted">Ejercicios prácticos y proyectos reales</span>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="d-flex align-items-start">
+                      <i class="bi bi-check text-success me-2 mt-1"></i>
+                      <span class="text-muted">Mejores prácticas de la industria</span>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="d-flex align-items-start">
+                      <i class="bi bi-check text-success me-2 mt-1"></i>
+                      <span class="text-muted">Certificado de finalización</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Requirements -->
+                <h5 class="fw-bold mb-3">
+                  <i class="bi bi-list-check text-info me-2"></i>
+                  Requisitos
+                </h5>
+                <ul class="list-unstyled text-muted mb-4">
+                  <li class="mb-2">
+                    <i class="bi bi-dot text-primary me-1"></i>
+                    Conocimientos básicos de computación
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-dot text-primary me-1"></i>
+                    Acceso a una computadora con internet
+                  </li>
+                  <li class="mb-2">
+                    <i class="bi bi-dot text-primary me-1"></i>
+                    {{ course.level === 'Principiante' ? 'No se requiere experiencia previa' : 'Experiencia básica
+                    recomendada' }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Instructor Info -->
+          <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+              <h3 class="card-title fw-bold mb-4">
+                <i class="bi bi-person-badge text-primary me-2"></i>
+                Tu Instructor
+              </h3>
+              <div class="d-flex align-items-center mb-3">
+                <div
+                  class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3"
+                  style="width: 60px; height: 60px;">
+                  <i class="bi bi-person text-primary fs-3"></i>
+                </div>
+                <div>
+                  <h5 class="fw-bold mb-1">{{ course.instructor }}</h5>
+                  <p class="text-muted mb-0">Experto en {{ course.category }}</p>
+                </div>
+              </div>
+              <p class="text-muted">
+                Instructor certificado con años de experiencia en la industria.
+                Especializado en brindar educación de calidad y apoyo personalizado a los estudiantes.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+          <!-- Enrollment Card -->
+          <div class="card border-0 shadow-lg sticky-top" style="top: 20px;">
+            <div class="card-body p-4 text-center">
+              <div class="mb-4">
+                <div class="display-4 fw-bold text-primary mb-2">
+                  {{ formatPrice(course.price) }}
+                </div>
+                <p class="text-muted mb-0">Precio del curso completo</p>
+              </div>
+
+              <!-- Course Stats -->
+              <div class="row g-3 mb-4 text-start">
+                <div class="col-6">
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-play-circle text-primary me-2"></i>
+                    <div>
+                      <div class="fw-semibold">{{ course.duration }}h</div>
+                      <small class="text-muted">Contenido</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-infinity text-primary me-2"></i>
+                    <div>
+                      <div class="fw-semibold">Ilimitado</div>
+                      <small class="text-muted">Acceso</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-phone text-primary me-2"></i>
+                    <div>
+                      <div class="fw-semibold">Móvil</div>
+                      <small class="text-muted">& Desktop</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="d-flex align-items-center">
+                    <i class="bi bi-award text-primary me-2"></i>
+                    <div>
+                      <div class="fw-semibold">Certificate</div>
+                      <small class="text-muted">Incluido</small>
+                    </div>
+                  </div>
+                </div>
+              </div> <!-- Action Buttons -->
+              <div class="d-grid gap-2">
+                <button class="btn btn-primary btn-lg fw-semibold btn-enroll">
+                  <i class="bi bi-cart-plus me-2"></i>
+                  Inscribirse Ahora
+                </button>
+                <button class="btn btn-outline-primary btn-favorite" (click)="toggleFavorite()">
+                  <i class="bi bi-heart me-2" [class.bi-heart-fill]="isFavorite" [class.text-danger]="isFavorite"></i>
+                  {{ isFavorite ? 'En Favoritos' : 'Agregar a Favoritos' }}
+                </button>
+                <button class="btn btn-outline-info" (click)="shareCourse()">
+                  <i class="bi bi-share me-2"></i>
+                  Compartir Curso
+                </button>
+                <a routerLink="/courses" class="btn btn-outline-secondary">
+                  <i class="bi bi-arrow-left me-2"></i>
+                  Volver a Cursos
+                </a>
+              </div>
+
+              <!-- Guarantee -->
+              <div class="mt-4 p-3 bg-light rounded-3">
+                <div class="d-flex align-items-center justify-content-center">
+                  <i class="bi bi-shield-check text-success me-2"></i>
+                  <small class="text-muted fw-semibold">Garantía de 30 días</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Related Courses Section -->
+  <section class="py-5 bg-light" *ngIf="relatedCourses.length > 0">
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <h3 class="fw-bold mb-4 text-center">
+            <i class="bi bi-collection text-primary me-2"></i>
+            Cursos Relacionados
+          </h3>
+        </div>
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6" *ngFor="let relatedCourse of relatedCourses">
+          <app-course-card [course]="relatedCourse"></app-course-card>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Error State -->
+<div *ngIf="!isLoading && !course" class="container py-5">
+  <div class="text-center">
+    <i class="bi bi-exclamation-triangle display-1 text-muted mb-3"></i>
+    <h3 class="fw-bold mb-3">Curso no encontrado</h3>
+    <p class="text-muted mb-4">El curso que buscas no existe o ha sido eliminado.</p>
+    <a routerLink="/courses" class="btn btn-primary">
+      <i class="bi bi-arrow-left me-2"></i>Volver a Cursos
+    </a>
+  </div>
+</div>

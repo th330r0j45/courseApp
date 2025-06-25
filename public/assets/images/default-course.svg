@@ -1,0 +1,9 @@
+<!-- This is a placeholder for the default course image -->
+<!-- Create a default-course.jpg image and place it in this directory -->
+<!-- For now, we'll use a placeholder SVG -->
+<svg width="400" height="250" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="250" fill="#f3f4f6"/>
+  <text x="200" y="125" text-anchor="middle" fill="#6b7280" font-family="Arial, sans-serif" font-size="18">
+    Imagen del Curso
+  </text>
+</svg>

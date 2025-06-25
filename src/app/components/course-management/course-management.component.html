@@ -1,0 +1,211 @@
+<div class="course-management">
+  <!-- Header -->
+  <header class="management-header">
+    <div class="header-content">
+      <h1 class="page-title">Gestión de Cursos</h1>
+      <p class="page-subtitle">Administra todos tus cursos desde un solo lugar</p>
+    </div>
+    <div class="header-actions">
+      <button routerLink="/admin/dashboard" class="btn-secondary">
+        ← Volver al Dashboard
+      </button>
+      <button routerLink="/admin/courses/new" class="btn-primary">
+        ➕ Nuevo Curso
+      </button>
+    </div>
+  </header>
+
+  <!-- Filters Section -->
+  <section class="filters-section">
+    <div class="search-container">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()"
+        placeholder="Buscar por título, instructor o descripción..."
+        class="search-input"
+      >
+      <button *ngIf="searchTerm" class="clear-search-btn" (click)="clearFilters()">
+        ✕
+      </button>
+    </div>
+
+    <div class="filter-container">
+      <select 
+        [(ngModel)]="selectedCategory" 
+        (change)="onCategoryChange()"
+        class="category-select"
+      >
+        <option *ngFor="let category of categories" [value]="category">
+          {{ category }}
+        </option>
+      </select>
+    </div>
+
+    <div class="results-info">
+      <span class="results-count">
+        {{ filteredCourses.length }} de {{ courses.length }} cursos
+      </span>
+    </div>
+  </section>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Cargando cursos...</p>
+  </div>
+
+  <!-- Courses Table -->
+  <div *ngIf="!isLoading" class="table-container">
+    <table class="courses-table" *ngIf="filteredCourses.length > 0">
+      <thead>
+        <tr>
+          <th>Curso</th>
+          <th>Instructor</th>
+          <th>Categoría</th>
+          <th>Nivel</th>
+          <th>Precio</th>
+          <th>Estudiantes</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let course of filteredCourses; trackBy: trackByCourseId" class="course-row">
+          <td class="course-info">
+            <div class="course-basic-info">              <img 
+                [src]="course.imageUrl || '/assets/images/default-course.svg'" 
+                [alt]="course.title"
+                class="course-thumbnail"
+                (error)="handleImageError($event)"
+              >
+              <div class="course-details">
+                <h4 class="course-title">{{ course.title }}</h4>
+                <p class="course-description">{{ course.description | slice:0:100 }}...</p>
+                <div class="course-meta">
+                  <span class="course-duration">{{ course.duration }}h</span>
+                  <span class="course-rating" *ngIf="course.rating">
+                    ⭐ {{ course.rating }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="instructor-info">
+              <span class="instructor-name">{{ course.instructor }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="category-badge">{{ course.category }}</span>
+          </td>
+          <td>
+            <span class="level-badge" [ngClass]="getLevelClass(course.level)">
+              {{ course.level }}
+            </span>
+          </td>
+          <td>
+            <span class="price">{{ formatPrice(course.price) }}</span>
+          </td>
+          <td>
+            <span class="students-count">{{ course.studentsCount || 0 }}</span>
+          </td>
+          <td>
+            <button 
+              class="status-toggle"
+              [class.active]="course.isActive"
+              (click)="toggleCourseStatus(course)"
+              [title]="course.isActive ? 'Desactivar curso' : 'Activar curso'"
+            >
+              {{ course.isActive ? 'Activo' : 'Inactivo' }}
+            </button>
+          </td>
+          <td>
+            <div class="actions-cell">
+              <button 
+                [routerLink]="['/admin/courses', course.id]"
+                class="btn-action btn-view"
+                title="Ver detalles"
+              >
+                👁️
+              </button>
+              <button 
+                [routerLink]="['/admin/courses', course.id, 'edit']"
+                class="btn-action btn-edit"
+                title="Editar curso"
+              >
+                ✏️
+              </button>
+              <button 
+                (click)="deleteCourse(course)"
+                class="btn-action btn-delete"
+                title="Eliminar curso"
+              >
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredCourses.length === 0" class="empty-state">
+      <div class="empty-icon">📚</div>
+      <h3>No se encontraron cursos</h3>
+      <p *ngIf="searchTerm || selectedCategory !== 'Todos'">
+        Intenta ajustar los filtros de búsqueda
+      </p>
+      <p *ngIf="!searchTerm && selectedCategory === 'Todos' && courses.length === 0">
+        Aún no has creado ningún curso
+      </p>
+      <div class="empty-actions">
+        <button 
+          *ngIf="searchTerm || selectedCategory !== 'Todos'" 
+          class="btn-secondary" 
+          (click)="clearFilters()"
+        >
+          Limpiar Filtros
+        </button>
+        <button 
+          *ngIf="courses.length === 0"
+          routerLink="/admin/courses/new" 
+          class="btn-primary"
+        >
+          Crear Primer Curso
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <nav class="pagination-nav" *ngIf="totalPages > 1 && !isLoading">
+    <button 
+      class="pagination-btn"
+      [disabled]="currentPage === 1"
+      (click)="goToPage(currentPage - 1)"
+    >
+      ← Anterior
+    </button>
+    
+    <div class="pagination-numbers">
+      <button 
+        *ngFor="let page of paginationArray"
+        class="pagination-number"
+        [class.active]="page === currentPage"
+        [disabled]="page === -1"
+        (click)="page !== -1 && goToPage(page)"
+      >
+        {{ page === -1 ? '...' : page }}
+      </button>
+    </div>
+    
+    <button 
+      class="pagination-btn"
+      [disabled]="currentPage === totalPages"
+      (click)="goToPage(currentPage + 1)"
+    >
+      Siguiente →
+    </button>
+  </nav>
+</div>

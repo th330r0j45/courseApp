@@ -1,0 +1,250 @@
+<!-- Page Header -->
+<div class="bg-primary text-white py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="display-5 fw-bold mb-3">Panel de Administración</h1>
+        <p class="lead mb-4">Gestiona tus cursos y contenido educativo desde un solo lugar</p>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb breadcrumb-dark mb-0">
+            <li class="breadcrumb-item"><a href="/" class="text-white-50">Inicio</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page">Dashboard</li>
+          </ol>
+        </nav>
+      </div>
+      <div class="col-lg-4 text-lg-end">
+        <a routerLink="/courses" class="btn btn-outline-light me-2">
+          <i class="bi bi-house me-2"></i>Ver Sitio Público
+        </a>
+        <a routerLink="/admin/courses/new" class="btn btn-light">
+          <i class="bi bi-plus-circle me-2"></i>Nuevo Curso
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="isLoading" class="container py-5">
+  <div class="text-center">
+    <div class="spinner-border spinner-border-custom text-primary mb-3" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <h4 class="text-muted">Cargando dashboard...</h4>
+  </div>
+</div>
+
+<!-- Dashboard Content -->
+<div *ngIf="!isLoading" class="container py-5">
+  <!-- Stats Cards -->
+  <div class="row g-4 mb-5">
+    <div class="col-xl-3 col-lg-6 col-md-6">
+      <div class="card border-0 h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0">
+              <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+                <i class="bi bi-book text-primary fs-2"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h3 class="mb-0 fw-bold">{{ totalCourses }}</h3>
+              <p class="text-muted mb-0">Total Cursos</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-lg-6 col-md-6">
+      <div class="card border-0 h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0">
+              <div class="bg-success bg-opacity-10 rounded-3 p-3">
+                <i class="bi bi-people text-success fs-2"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h3 class="mb-0 fw-bold">{{ totalStudents }}</h3>
+              <p class="text-muted mb-0">Total Estudiantes</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-lg-6 col-md-6">
+      <div class="card border-0 h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0">
+              <div class="bg-warning bg-opacity-10 rounded-3 p-3">
+                <i class="bi bi-star text-warning fs-2"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h3 class="mb-0 fw-bold">{{ averageRating | number:'1.1-1' }}</h3>
+              <p class="text-muted mb-0">Calificación Promedio</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-lg-6 col-md-6">
+      <div class="card border-0 h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-shrink-0">
+              <div class="bg-info bg-opacity-10 rounded-3 p-3">
+                <i class="bi bi-currency-dollar text-info fs-2"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h3 class="mb-0 fw-bold">{{ formatPrice(getTotalCatalogValue()) }}</h3>
+              <p class="text-muted mb-0">Valor Total Catálogo</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row mb-5">
+    <div class="col-12">
+      <div class="card border-0">
+        <div class="card-header bg-transparent border-0 pb-0">
+          <h4 class="card-title fw-bold">Acciones Rápidas</h4>
+          <p class="text-muted">Gestiona tu plataforma educativa</p>
+        </div>
+        <div class="card-body pt-3">
+          <div class="row g-3">
+            <div class="col-lg-3 col-md-6">
+              <a routerLink="/admin/courses" class="text-decoration-none">
+                <div class="card border h-100 card-hover">
+                  <div class="card-body text-center">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                      <i class="bi bi-list-ul text-primary fs-4"></i>
+                    </div>
+                    <h6 class="fw-bold">Gestionar Cursos</h6>
+                    <p class="text-muted small mb-0">Ver, editar y eliminar cursos</p>
+                  </div>
+                </div>
+              </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+              <a routerLink="/admin/courses/new" class="text-decoration-none">
+                <div class="card border h-100 card-hover">
+                  <div class="card-body text-center">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                      <i class="bi bi-plus-circle text-success fs-4"></i>
+                    </div>
+                    <h6 class="fw-bold">Crear Nuevo Curso</h6>
+                    <p class="text-muted small mb-0">Agregar curso al catálogo</p>
+                  </div>
+                </div>
+              </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+              <div class="card border h-100 card-hover">
+                <div class="card-body text-center">
+                  <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-graph-up text-warning fs-4"></i>
+                  </div>
+                  <h6 class="fw-bold">Ver Analíticas</h6>
+                  <p class="text-muted small mb-0">Estadísticas de rendimiento</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+              <div class="card border h-100 card-hover">
+                <div class="card-body text-center">
+                  <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-gear text-info fs-4"></i>
+                  </div>
+                  <h6 class="fw-bold">Configuración</h6>
+                  <p class="text-muted small mb-0">Ajustes del sistema</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Courses -->
+  <div class="row" *ngIf="recentCourses.length > 0">
+    <div class="col-12">
+      <div class="card border-0">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pb-0">
+          <div>
+            <h4 class="card-title fw-bold mb-1">Cursos Recientes</h4>
+            <p class="text-muted mb-0">Últimos cursos agregados al catálogo</p>
+          </div>
+          <a routerLink="/admin/courses" class="btn btn-outline-primary btn-sm">
+            Ver todos
+            <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+        <div class="card-body pt-3">
+          <div class="row g-4">
+            <div *ngFor="let course of recentCourses" class="col-lg-4 col-md-6">
+              <div class="card border h-100">
+                <img 
+                  [src]="course.imageUrl || '/assets/images/default-course.svg'" 
+                  [alt]="course.title"
+                  class="card-img-top"
+                  style="height: 180px; object-fit: cover;"
+                >
+                <div class="card-body">
+                  <span class="badge bg-light text-muted small mb-2">{{ course.category }}</span>
+                  <h6 class="card-title fw-bold">{{ course.title }}</h6>
+                  <p class="card-text text-muted small">{{ course.description | slice:0:80 }}...</p>
+                  
+                  <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-person-circle text-muted me-1"></i>
+                      <small class="text-muted">{{ course.instructor }}</small>
+                    </div>
+                    <span class="badge bg-primary">{{ formatPrice(course.price) }}</span>
+                  </div>
+                  
+                  <div class="d-flex gap-2 mt-3">
+                    <a [routerLink]="['/admin/courses', course.id, 'edit']" class="btn btn-outline-primary btn-sm flex-fill">
+                      <i class="bi bi-pencil me-1"></i>Editar
+                    </a>
+                    <button (click)="deleteCourse(course.id!)" class="btn btn-outline-danger btn-sm">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="recentCourses.length === 0" class="row">
+    <div class="col-12">
+      <div class="card border-0">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-book display-1 text-muted mb-3"></i>
+          <h4 class="fw-bold mb-3">No hay cursos todavía</h4>
+          <p class="text-muted mb-4">Comienza creando tu primer curso para ver estadísticas y gestionar contenido.</p>
+          <a routerLink="/admin/courses/new" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Crear Primer Curso
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

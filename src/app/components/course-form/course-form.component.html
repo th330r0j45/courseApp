@@ -1,0 +1,237 @@
+<div class="course-form-container">
+  <!-- Header -->
+  <header class="form-header">
+    <div class="header-content">
+      <h1 class="form-title">
+        {{ isEditMode ? 'Editar Curso' : 'Crear Nuevo Curso' }}
+      </h1>
+      <p class="form-subtitle">
+        {{ isEditMode ? 'Modifica la información del curso' : 'Completa la información para crear un nuevo curso' }}
+      </p>
+    </div>
+    <button type="button" (click)="onCancel()" class="btn-close" title="Cerrar">
+      ✕
+    </button>
+  </header>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Cargando información del curso...</p>
+  </div>
+
+  <!-- Form -->
+  <form *ngIf="!isLoading" [formGroup]="courseForm" (ngSubmit)="onSubmit()" class="course-form">
+    <div class="form-grid">
+      <!-- Basic Information Section -->
+      <section class="form-section">
+        <h2 class="section-title">Información Básica</h2>
+        
+        <div class="form-group">
+          <label for="title" class="form-label">
+            Título del Curso *
+          </label>
+          <input
+            type="text"
+            id="title"
+            formControlName="title"
+            class="form-input"
+            [class.error]="isFieldInvalid('title')"
+            placeholder="Ej: Introducción a JavaScript"
+          >
+          <div *ngIf="isFieldInvalid('title')" class="error-message">
+            {{ getFieldError('title') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="description" class="form-label">
+            Descripción *
+          </label>
+          <textarea
+            id="description"
+            formControlName="description"
+            class="form-textarea"
+            [class.error]="isFieldInvalid('description')"
+            rows="4"
+            placeholder="Describe el contenido y objetivos del curso..."
+          ></textarea>
+          <div *ngIf="isFieldInvalid('description')" class="error-message">
+            {{ getFieldError('description') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="instructor" class="form-label">
+            Instructor *
+          </label>
+          <input
+            type="text"
+            id="instructor"
+            formControlName="instructor"
+            class="form-input"
+            [class.error]="isFieldInvalid('instructor')"
+            placeholder="Nombre del instructor"
+          >
+          <div *ngIf="isFieldInvalid('instructor')" class="error-message">
+            {{ getFieldError('instructor') }}
+          </div>
+        </div>
+      </section>
+
+      <!-- Course Details Section -->
+      <section class="form-section">
+        <h2 class="section-title">Detalles del Curso</h2>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="category" class="form-label">
+              Categoría *
+            </label>
+            <select
+              id="category"
+              formControlName="category"
+              class="form-select"
+              [class.error]="isFieldInvalid('category')"
+            >
+              <option value="">Selecciona una categoría</option>
+              <option *ngFor="let category of categories" [value]="category">
+                {{ category }}
+              </option>
+            </select>
+            <div *ngIf="isFieldInvalid('category')" class="error-message">
+              {{ getFieldError('category') }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="level" class="form-label">
+              Nivel *
+            </label>
+            <select
+              id="level"
+              formControlName="level"
+              class="form-select"
+              [class.error]="isFieldInvalid('level')"
+            >
+              <option value="">Selecciona un nivel</option>
+              <option *ngFor="let level of levels" [value]="level">
+                {{ level }}
+              </option>
+            </select>
+            <div *ngIf="isFieldInvalid('level')" class="error-message">
+              {{ getFieldError('level') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="duration" class="form-label">
+              Duración (horas) *
+            </label>
+            <input
+              type="number"
+              id="duration"
+              formControlName="duration"
+              class="form-input"
+              [class.error]="isFieldInvalid('duration')"
+              placeholder="Ej: 40"
+              min="1"
+              max="1000"
+            >
+            <div *ngIf="isFieldInvalid('duration')" class="error-message">
+              {{ getFieldError('duration') }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="price" class="form-label">
+              Precio (COP) *
+            </label>
+            <input
+              type="number"
+              id="price"
+              formControlName="price"
+              class="form-input"
+              [class.error]="isFieldInvalid('price')"
+              placeholder="Ej: 150000"
+              min="0"
+            >
+            <div *ngIf="isFieldInvalid('price')" class="error-message">
+              {{ getFieldError('price') }}
+            </div>
+            <div *ngIf="courseForm.get('price')?.value" class="price-preview">
+              Vista previa: {{ formatPrice(courseForm.get('price')?.value) }}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Media Section -->
+      <section class="form-section">
+        <h2 class="section-title">Imagen del Curso</h2>
+        
+        <div class="form-group">
+          <label for="imageUrl" class="form-label">
+            URL de la Imagen
+            <span class="optional-label">(Opcional)</span>
+          </label>
+          <input
+            type="url"
+            id="imageUrl"
+            formControlName="imageUrl"
+            class="form-input"
+            [class.error]="isFieldInvalid('imageUrl')"
+            placeholder="https://ejemplo.com/imagen.jpg"
+          >
+          <div *ngIf="isFieldInvalid('imageUrl')" class="error-message">
+            {{ getFieldError('imageUrl') }}
+          </div>
+          <div class="form-hint">
+            Formatos soportados: JPG, JPEG, PNG, GIF, WebP
+          </div>
+        </div>
+
+        <!-- Image Preview -->
+        <div *ngIf="courseForm.get('imageUrl')?.value" class="image-preview">          <img 
+            [src]="courseForm.get('imageUrl')?.value" 
+            alt="Vista previa"
+            (error)="onImageError($event)"
+            (load)="onImageLoad($event)"
+          >
+        </div>
+      </section>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button
+        type="button"
+        (click)="onCancel()"
+        class="btn-secondary"
+        [disabled]="isSubmitting"
+      >
+        Cancelar
+      </button>
+      
+      <button
+        type="submit"
+        class="btn-primary"
+        [disabled]="courseForm.invalid || isSubmitting"
+      >
+        <span *ngIf="isSubmitting" class="button-spinner"></span>
+        {{ isSubmitting ? 'Guardando...' : (isEditMode ? 'Actualizar Curso' : 'Crear Curso') }}
+      </button>
+    </div>
+  </form>
+
+  <!-- Form Summary (for debugging in development) -->
+  <div *ngIf="false" class="form-debug">
+    <h3>Form Status</h3>
+    <p>Valid: {{ courseForm.valid }}</p>
+    <p>Dirty: {{ courseForm.dirty }}</p>
+    <p>Touched: {{ courseForm.touched }}</p>
+    <pre>{{ courseForm.value | json }}</pre>
+  </div>
+</div>

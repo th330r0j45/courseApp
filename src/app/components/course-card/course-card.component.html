@@ -1,0 +1,78 @@
+<div class="card h-100">
+  <!-- Course Image -->
+  <div class="position-relative">
+    <img 
+      [src]="course.imageUrl || '/assets/images/default-course.svg'" 
+      [alt]="course.title"
+      (error)="handleImageError($event)"
+      class="card-img-top"
+    >
+    <!-- Level Badge -->
+    <div class="position-absolute top-0 start-0 m-3">
+      <span class="badge" [ngClass]="getLevelBadgeClass()">
+        {{ course.level }}
+      </span>
+    </div>
+    <!-- Price Badge -->
+    <div class="position-absolute top-0 end-0 m-3">
+      <span class="badge bg-white text-dark fw-bold">
+        {{ formatPrice(course.price) }}
+      </span>
+    </div>
+  </div>
+  
+  <div class="card-body d-flex flex-column">
+    <!-- Category -->
+    <div class="mb-2">
+      <span class="badge bg-light text-muted small">{{ course.category }}</span>
+    </div>
+    
+    <!-- Title -->
+    <h5 class="card-title fw-bold mb-3">{{ course.title }}</h5>
+    
+    <!-- Description -->
+    <p class="card-text text-muted flex-grow-1">
+      {{ course.description | slice:0:100 }}{{ course.description.length > 100 ? '...' : '' }}
+    </p>
+    
+    <!-- Course Details -->
+    <div class="mb-3">
+      <!-- Instructor -->
+      <div class="d-flex align-items-center mb-2">
+        <i class="bi bi-person-circle text-primary me-2"></i>
+        <small class="text-muted">{{ course.instructor }}</small>
+      </div>
+      
+      <!-- Duration and Rating -->
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-clock text-primary me-1"></i>
+          <small class="text-muted">{{ course.duration }}h</small>
+        </div>
+        
+        <div class="d-flex align-items-center" *ngIf="course.rating">
+          <div class="me-1">
+            <i 
+              *ngFor="let star of getStarArray(); let i = index" 
+              class="bi"
+              [ngClass]="star === 1 ? 'bi-star-fill text-warning' : 'bi-star text-muted'"
+              style="font-size: 12px;"
+            ></i>
+          </div>
+          <small class="text-muted">({{ course.rating }})</small>
+        </div>
+      </div>
+      
+      <!-- Students Count -->
+      <div class="d-flex align-items-center mt-2" *ngIf="course.studentsCount">
+        <i class="bi bi-people text-primary me-2"></i>
+        <small class="text-muted">{{ course.studentsCount }} estudiantes</small>
+      </div>
+    </div>    <!-- Action Button -->
+    <div class="mt-auto">
+      <a [routerLink]="['/courses', course.id]" class="btn btn-primary w-100 fw-semibold text-decoration-none">
+        <i class="bi bi-play-circle me-2"></i>Ver Curso
+      </a>
+    </div>
+  </div>
+</div>
