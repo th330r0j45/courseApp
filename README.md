@@ -257,7 +257,34 @@ curl http://localhost:3001/api/courses/public
 │   └── 📄 nginx.conf          # Configuración Nginx
 └── 📄 README.md               # Este archivo
 ```
+## 📸 Capturas de Pantalla
 
+### Página Principal de Cursos
+![Página Principal](./screenshots/home-page.jpeg)
+*Vista del catálogo público de cursos con filtros y búsqueda*
+
+### Panel de Administración
+![Dashboard Admin](./screenshots/admin-1.jpeg)
+*Dashboard administrativo con estadísticas y métricas*
+
+![Dashboard Admin](./screenshots/admin-2.jpeg)
+*Dashboard administrativo con listado de cursos*
+
+### Gestión de Cursos
+![Gestión de Cursos](./screenshots/crud.jpeg)
+*Edición de cursos*
+
+### Formulario de Creación
+![Crear Curso](./screenshots/new.jpeg)
+*Formulario para crear nuevos cursos con validación*
+
+### Vista Mobile
+![Vista Mobile](./screenshots/mobile.jpeg)
+*Diseño responsivo optimizado para dispositivos móviles*
+
+### API Response
+![API Response](./screenshots/api.png)
+*Ejemplo de respuesta de la API REST*
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
